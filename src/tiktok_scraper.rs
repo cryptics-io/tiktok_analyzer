@@ -1,7 +1,9 @@
 use fantoccini::{Client, ClientBuilder};
 use anyhow::Result;
-use tokio::{runtime::Runtime, sync::TryAcquireError};
-use std::{f32::MANTISSA_DIGITS, fmt, io::{self, Error, Write}};
+use tokio::{runtime::Runtime, stream};
+use std::{fmt, io::{self, Error, Write}};
+use regex::Regex;
+use std::collections::HashSet;
 
 #[derive(Debug)]
 enum ScraperError {
@@ -27,6 +29,7 @@ impl std::fmt::Display for ScraperError {
 impl std::error::Error for ScraperError {}
 
 
+
 pub struct TiktokScraper {
     client: Client,
 }
@@ -44,15 +47,46 @@ impl TiktokScraper {
         Ok(())
     }
 
-    pub async fn run_async() -> Result<()> {
-        let mut scraper = Self::new().await?;
+    pub fn extract_video_urls(html: & str) -> HashSet<String>{
+        let mut video_urls: HashSet<String> = HashSet::new();
+        // Same pattern as your JS version
+        let re = Regex::new(r"https://www\.tiktok\.com/@[^/]+/video/\d+").unwrap();
+
+        for mat in re.find_iter(html) {
+            video_urls.insert(mat.as_str().to_string());
+        }
+
+        video_urls
+
+    }
+
+    pub async fn scrape_profile(&self, profile_url: &str) -> Result<()> {
+
+        self.client.goto(profile_url).await;
+        let page_source= self.client.source().await?;
+        let video_urls = TiktokScraper::extract_video_urls(&page_source);
+        for url in video_urls {
+            println!("Found {}", url);
+        }
+
+        Ok(())
+    }
+
+    
+
+    pub async fn run_async(profile_url: &str) -> Result<()> {
+        let scraper = Self::new().await?;
         println!("Scraper initialized.");
+        scraper.scrape_profile(profile_url).await;
 
         // Placeholder: scraper.scrape_profile(&profile_url).await?;
 
         scraper.close().await?;
         Ok(())
     }
+
+   
+
 
     fn ask_userinput_profile() -> Result<String, ScraperError> {
         let mut input = String::new();
@@ -88,15 +122,14 @@ impl TiktokScraper {
     - Scrape all comments, number of videos, likes, views per videos
     - Display results 
     - Save results in db */
-
-
+ 
 
     pub fn run_scraper() -> Result<()> {
         let profile_url = TiktokScraper::retry_till_valid_userinput()?; // static method call
         println!("We’ll scrape: {}", profile_url);
 
         let rt = Runtime::new()?;
-        rt.block_on(Self::run_async())?;
+        rt.block_on(Self::run_async(&profile_url))?;
 
         Ok(())
     }
