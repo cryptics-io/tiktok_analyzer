@@ -6,6 +6,5 @@ use anyhow::Result;
 
 fn main() -> Result<()> {
     println!("Launching scraper...");
-
     TiktokScraper::run_scraper()
 }
