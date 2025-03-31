@@ -1,3 +1,9 @@
+mod tiktok_scraper;
+
+use crate::tiktok_scraper::*;
+use anyhow::Result;
+
+
 fn main() {
-    println!("Hello, world!");
+    crate::tiktok_scraper::test_import();
 }
