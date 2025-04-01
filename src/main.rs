@@ -1,6 +1,8 @@
+mod models;
 mod tiktok_scraper;
 
 use crate::tiktok_scraper::TiktokScraper;
+
 use anyhow::Result;
 
 

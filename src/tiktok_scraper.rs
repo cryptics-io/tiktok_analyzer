@@ -4,7 +4,6 @@ use tokio::{runtime::Runtime, stream};
 use std::{fmt, io::{self, Error, Write}};
 use regex::Regex;
 use std::collections::{HashSet, HashMap};
-use chrono::DateTime;
 
 #[derive(Debug)]
 enum ScraperError {
@@ -30,31 +29,6 @@ impl std::fmt::Display for ScraperError {
 impl std::error::Error for ScraperError {}
 
 
-pub struct VideoComments{
-    comment_date: chrono::DateTime<chrono::Utc>,
-    comment_text: String,
-    comment_user: String,
-    comment_likes: u64,
-    comment_id: u64,
-    comment_parent_id: u64,
-}
-
-pub struct VideoStats{
-    video_url: String,
-    n_likes: u64,
-    n_shares: u64,
-    post_date: chrono::DateTime<chrono::Utc>, // give the right format here (unix + timezone?)
-    comments: HashSet<VideoComments>
-}
-
-pub struct ScrapedProfile {
-    username: String,
-    bio: String,
-    n_following: u64,
-    n_followers: u64,
-    n_likes: i64,
-    public_videos: HashMap<u64, VideoStats>,
-}
 
 pub struct TiktokScraper {
     client: Client,
